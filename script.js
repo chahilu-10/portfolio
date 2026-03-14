@@ -175,32 +175,59 @@ function initFormHandling() {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Sending...';
             
-            // Send real email using EmailJS
-            emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
-                from_name: data.name,
-                from_email: data.email,
-                subject: data.subject,
-                message: data.message,
-                reply_to: "ryanchahilu432@gmail.com"
-            })
-            .then(function(response) {
-                if (response.status === 200) {
-                    showFormMessage('Thank you for your message! I\'ll get back to you soon.', 'success');
-                    form.reset();
-                    console.log('Email sent successfully:', response);
-                } else {
-                    showFormMessage('Sorry, there was an error sending your message. Please try again.', 'error');
-                    console.error('EmailJS error:', response);
-                }
-            })
-            .catch(function(error) {
-                console.error('EmailJS failed:', error);
-                showFormMessage('Network error. Please check your connection and try again.', 'error');
-            })
-            .finally(() => {
+            // Check if EmailJS is properly configured
+            const config = window.emailjsConfig;
+            if (!config || config.publicKey === "YOUR_PUBLIC_KEY" || !config.serviceId || !config.templateId) {
+                // Fallback: Open email client with pre-filled data
+                const mailtoLink = `mailto:ryanchahilu432@gmail.com?subject=${encodeURIComponent(data.subject)}&body=${encodeURIComponent(`Name: ${data.name}\nEmail: ${data.email}\n\n${data.message}`)}`;
+                window.location.href = mailtoLink;
+                showFormMessage('Opening your email client...', 'success');
+                form.reset();
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
-            });
+                return;
+            }
+            
+            // Dynamically load EmailJS
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+            script.onload = function() {
+                emailjs.init(config.publicKey);
+                
+                // Send email using EmailJS
+                emailjs.send(config.serviceId, config.templateId, {
+                    from_name: data.name,
+                    from_email: data.email,
+                    subject: data.subject,
+                    message: data.message,
+                    reply_to: "ryanchahilu432@gmail.com"
+                })
+                .then(function(response) {
+                    if (response.status === 200) {
+                        showFormMessage('Thank you for your message! I\'ll get back to you soon.', 'success');
+                        form.reset();
+                        console.log('Email sent successfully:', response);
+                    } else {
+                        showFormMessage('Sorry, there was an error sending your message. Please try again.', 'error');
+                        console.error('EmailJS error:', response);
+                    }
+                })
+                .catch(function(error) {
+                    console.error('EmailJS failed:', error);
+                    showFormMessage('Network error. Please check your connection and try again.', 'error');
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                });
+            };
+            script.onerror = function() {
+                console.error('Failed to load EmailJS script');
+                showFormMessage('Service unavailable. Please try again later.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            };
+            document.head.appendChild(script);
         });
         
         // Add input focus effects and security
