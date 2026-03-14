@@ -54,6 +54,7 @@
     <script type="text/javascript">
         (function() {
             emailjs.init("YOUR_PUBLIC_KEY", "YOUR_SERVICE_ID");
+            window.emailjs = emailjs; // Make it globally available
         })();
     </script>
     
