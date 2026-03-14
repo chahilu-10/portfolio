@@ -175,19 +175,32 @@ function initFormHandling() {
             submitBtn.disabled = true;
             submitBtn.textContent = 'Sending...';
             
-            // Simulate form submission (in production, send to server)
-            setTimeout(() => {
-                showFormMessage('Thank you for your message! I\'ll get back to you soon.', 'success');
-                form.reset();
+            // Send real email using EmailJS
+            emailjs.send("YOUR_SERVICE_ID", "YOUR_TEMPLATE_ID", {
+                from_name: data.name,
+                from_email: data.email,
+                subject: data.subject,
+                message: data.message,
+                reply_to: "ryanchahilu432@gmail.com"
+            })
+            .then(function(response) {
+                if (response.status === 200) {
+                    showFormMessage('Thank you for your message! I\'ll get back to you soon.', 'success');
+                    form.reset();
+                    console.log('Email sent successfully:', response);
+                } else {
+                    showFormMessage('Sorry, there was an error sending your message. Please try again.', 'error');
+                    console.error('EmailJS error:', response);
+                }
+            })
+            .catch(function(error) {
+                console.error('EmailJS failed:', error);
+                showFormMessage('Network error. Please check your connection and try again.', 'error');
+            })
+            .finally(() => {
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
-                
-                // Log for analytics (in production)
-                console.log('Form submitted:', {
-                    timestamp: data.timestamp,
-                    type: 'contact_submission'
-                });
-            }, 1500); // Simulate network delay
+            });
         });
         
         // Add input focus effects and security
