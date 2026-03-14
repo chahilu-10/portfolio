@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /private/
+Disallow: /.htaccess
+Disallow: /sitemap.xml
+
+# Sitemap Location
+Sitemap: https://ryanchahilu.com/sitemap.xml
+
+# Crawl Delay (optional, for good bot citizenship)
+Crawl-delay: 1
